@@ -142,7 +142,18 @@ const ruKeys = {
   ArrowRight: "Right",
 };
 
+let currentKeys = engKeys;
+let shiftOn = false;
+let CapsLock = false;
 let ru = false;
+let AltLeftOn = false;
+
+//console.log(localStorage["rus"]);
+if (localStorage["rus"] == "true") {
+  currentKeys = ruKeys;
+} else {
+  currentKeys = engKeys;
+}
 
 //отрисовка виртуальной клавиатуры
 
@@ -153,31 +164,41 @@ window.onload = function (event) {
   var keyboard = document.createElement("div");
   keyboard.classList.add("keyboard");
   body.appendChild(keyboard);
-  let printChars = "";
-  for (var key in engKeys) {
-    if (
-      engKeys[key] == "Shift" ||
-      engKeys[key] == "Ctrl" ||
-      engKeys[key] == "CapsLock" ||
-      engKeys[key] == "Backspace" ||
-      engKeys[key] == "Enter"
-    ) {
-      printChars +=
-        '<div class="key double" data="' + key + '">' + engKeys[key] + "</div>";
-    } else if (engKeys[key] == "Space") {
-      printChars +=
-        '<div class="key space-button" data="' +
-        key +
-        '">' +
-        engKeys[key] +
-        "</div>";
-    } else {
-      printChars +=
-        '<div class="key" data="' + key + '">' + engKeys[key] + "</div>";
-    }
-  }
+  var describe = document.createElement("p");
+  describe.innerHTML = "Нажмите Alt+Shift для переключения языка";
+  body.appendChild(describe);
 
-  document.querySelector(".keyboard").innerHTML = printChars;
+  function printChars() {
+    let printChars = "";
+    for (var key in currentKeys) {
+      if (
+        currentKeys[key] == "Shift" ||
+        currentKeys[key] == "Ctrl" ||
+        currentKeys[key] == "CapsLock" ||
+        currentKeys[key] == "Backspace" ||
+        currentKeys[key] == "Enter"
+      ) {
+        printChars +=
+          '<div class="key double" data="' +
+          key +
+          '">' +
+          currentKeys[key] +
+          "</div>";
+      } else if (currentKeys[key] == "Space") {
+        printChars +=
+          '<div class="key space-button" data="' +
+          key +
+          '">' +
+          currentKeys[key] +
+          "</div>";
+      } else {
+        printChars +=
+          '<div class="key" data="' + key + '">' + currentKeys[key] + "</div>";
+      }
+    }
+    document.querySelector(".keyboard").innerHTML = printChars;
+  }
+  printChars();
 
   //при нажатии мышкой
 
@@ -204,11 +225,7 @@ window.onload = function (event) {
     ) {
       textarea.innerHTML = textarea.innerHTML;
     } else {
-      if (ru == true) {
-        textarea.innerHTML += ruKeys[data].toLowerCase();
-      } else {
-        textarea.innerHTML += engKeys[data].toLowerCase();
-      }
+      textarea.innerHTML += currentKeys[data].toLowerCase();
     }
   };
 
@@ -222,102 +239,64 @@ window.onload = function (event) {
   //при нажатии клавиши
 
   document.onkeydown = function (event) {
-    console.log(event.code);
-    console.log(ru);
-
-    if (event.code == "AltLeft" && ru == true) ru = false;
-    if (event.code == "ShiftLeft" && !ru) {
-      // англ раскладка
-
-      console.log("англ раскладка");
-      printChars = "";
-      for (var key in engKeys) {
-        if (
-          engKeys[key] == "Shift" ||
-          engKeys[key] == "Ctrl" ||
-          engKeys[key] == "CapsLock" ||
-          engKeys[key] == "Backspace" ||
-          engKeys[key] == "Enter"
-        ) {
-          printChars +=
-            '<div class="key double" data="' +
-            key +
-            '">' +
-            engKeys[key] +
-            "</div>";
-        } else if (engKeys[key] == "Space") {
-          printChars +=
-            '<div class="key space-button" data="' +
-            key +
-            '">' +
-            engKeys[key] +
-            "</div>";
-        } else {
-          printChars +=
-            '<div class="key" data="' + key + '">' + engKeys[key] + "</div>";
-        }
-      }
-    } else {
-      if (event.code == "AltLeft" && ru == false) ru = true; // русская раскладка
-      if (event.code == "ShiftLeft" && ru) {
-        console.log("русская раскладка");
-
-        let printChars = "";
-        for (var key in ruKeys) {
-          if (
-            ruKeys[key] == "Shift" ||
-            ruKeys[key] == "Ctrl" ||
-            ruKeys[key] == "CapsLock" ||
-            ruKeys[key] == "Backspace" ||
-            ruKeys[key] == "Enter"
-          ) {
-            printChars +=
-              '<div class="key double" data="' +
-              key +
-              '">' +
-              ruKeys[key] +
-              "</div>";
-          } else if (ruKeys[key] == "Space") {
-            printChars +=
-              '<div class="key space-button" data="' +
-              key +
-              '">' +
-              ruKeys[key] +
-              "</div>";
-          } else {
-            printChars +=
-              '<div class="key" data="' + key + '">' + ruKeys[key] + "</div>";
-          }
-          document.querySelector(".keyboard").innerHTML = printChars;
-        }
-      }
+    if (event.code == "AltLeft") {
+      AltLeftOn = true;
     }
 
-    var keys = document.querySelectorAll(".key");
+    if (event.code == "ShiftLeft" && AltLeftOn) {
+      if (ru == false) {
+        ru = true;
+        currentKeys = ruKeys;
+        printChars();
+
+        localStorage["rus"] = "true";
+        let russ = localStorage.getItem("rus");
+      } else {
+        ru = false;
+        currentKeys = engKeys;
+        printChars();
+
+        localStorage["rus"] = "false";
+        let russ = localStorage.getItem("rus");
+      }
+      AltLeftOn = false;
+    }
 
     if (event.code == "Backspace" || event.code == "Delete") {
       textarea.innerHTML = textarea.innerHTML.slice(0, -1);
     } else if (event.code == "Enter") {
       textarea.innerHTML = textarea.innerHTML + "\n";
     } else if (event.code == "Tab") {
-      textarea.innerHTML = textarea.innerHTML + "\t";
+      textarea.innerHTML = textarea.innerHTML + "    ";
+    } else if (event.code == "Space") {
+      textarea.innerHTML = textarea.innerHTML + " ";
+    } else if (event.code == "ShiftLeft" || event.code == "ShiftRight") {
+      shiftOn = true;
+      textarea.innerHTML = textarea.innerHTML;
+    } else if (event.code == "CapsLock") {
+      if (CapsLock == false) {
+        CapsLock = true;
+      } else {
+        CapsLock = false;
+      }
+      textarea.innerHTML = textarea.innerHTML;
     } else if (
       event.code == "ControlRight" ||
       event.code == "ControlLeft" ||
       event.code == "AltRight" ||
-      event.code == "AltLeft" ||
-      event.code == "ShiftLeft" ||
-      event.code == "ShiftRight" ||
-      event.code == "CapsLock"
+      event.code == "AltLeft"
     ) {
       textarea.innerHTML = textarea.innerHTML;
     } else {
-      if (ru == true) {
-        textarea.innerHTML += ruKeys[event.code].toLowerCase();
+      if (shiftOn !== true && CapsLock !== true) {
+        textarea.innerHTML += currentKeys[event.code].toLowerCase();
       } else {
-        textarea.innerHTML += event.key;
+        textarea.innerHTML += currentKeys[event.code].toUpperCase();
       }
+      shiftOn = false;
     }
+
+    var keys = document.querySelectorAll(".key");
     for (let j = 0; j < keys.length; j++) {
       let data = keys[j].getAttribute("data");
       if (event.code == data) {
@@ -327,6 +306,7 @@ window.onload = function (event) {
   };
 
   document.onkeyup = function (event) {
+    var keys = document.querySelectorAll(".key");
     for (let j = 0; j < keys.length; j++) {
       keys[j].classList.remove("press");
     }
