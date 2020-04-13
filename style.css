@@ -42,6 +42,6 @@ textarea {
 }
 
 .press {
-  background-color: blue;
+  background-color: rgb(255, 196, 0);
   transition: background-color 1s ease-out;
 }
